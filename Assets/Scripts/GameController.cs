@@ -2,19 +2,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour
 {
     public CanvasGroup buttonsCanvasGroup;
+    public CanvasGroup pauseButtonsCanvasGroup;
     public Button switchButton;
     [SerializeField] private Character[] playerCharacters = default;
     [SerializeField] private Character[] enemyCharacters = default;
     Character currentTarget;
     bool waitingForInput;
+    bool isPause;
 
     // Start is called before the first frame update
     void Start()
     {
+        isPause = false;
         switchButton.onClick.AddListener(NextTarget);
         StartCoroutine(GameLoop());
     }
@@ -24,15 +28,40 @@ public class GameController : MonoBehaviour
         waitingForInput = false;
     }
 
+    public void PauseMenu()
+    {
+        isPause = true;
+    }
+
+    public void ResumeGame()
+    {
+        isPause = false;
+        Utility.SetCanvasGroupEnabled(pauseButtonsCanvasGroup, false);
+    }
+
+    public void RestartLevel()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void ExitToMainMenu()
+    {
+        isPause = false;
+        SceneManager.LoadScene("MainMenu");
+    }
+
     public void NextTarget()
     {
-        for (int i = 0; i < enemyCharacters.Length; i++) {
+        for (int i = 0; i < enemyCharacters.Length; i++)
+        {
             // Найти текущего персонажа (i = индекс текущего)
-            if (enemyCharacters[i] == currentTarget) {
+            if (enemyCharacters[i] == currentTarget)
+            {
                 int start = i;
                 ++i;
                 // Идем в сторону конца массива и ищем живого персонажа
-                for (; i < enemyCharacters.Length; i++) {
+                for (; i < enemyCharacters.Length; i++)
+                {
                     if (enemyCharacters[i].IsDead())
                         continue;
 
@@ -44,7 +73,8 @@ public class GameController : MonoBehaviour
                     return;
                 }
                 // Идем от начала массива до текущего и смотрим, если там кто живой
-                for (i = 0; i < start; i++) {
+                for (i = 0; i < start; i++)
+                {
                     if (enemyCharacters[i].IsDead())
                         continue;
 
@@ -63,7 +93,8 @@ public class GameController : MonoBehaviour
 
     Character FirstAliveCharacter(Character[] characters)
     {
-        foreach (var character in characters) {
+        foreach (var character in characters)
+        {
             if (!character.IsDead())
                 return character;
         }
@@ -82,12 +113,14 @@ public class GameController : MonoBehaviour
 
     bool CheckEndGame()
     {
-        if (FirstAliveCharacter(playerCharacters) == null) {
+        if (FirstAliveCharacter(playerCharacters) == null)
+        {
             PlayerLost();
             return true;
         }
 
-        if (FirstAliveCharacter(enemyCharacters) == null) {
+        if (FirstAliveCharacter(enemyCharacters) == null)
+        {
             PlayerWon();
             return true;
         }
@@ -98,9 +131,19 @@ public class GameController : MonoBehaviour
     IEnumerator GameLoop()
     {
         Utility.SetCanvasGroupEnabled(buttonsCanvasGroup, false);
+        Utility.SetCanvasGroupEnabled(pauseButtonsCanvasGroup, false);
 
-        while (!CheckEndGame()) {
-            foreach (var player in playerCharacters) {
+        while (!CheckEndGame())
+        {
+            while (isPause)
+            {
+                Utility.SetCanvasGroupEnabled(buttonsCanvasGroup, false);
+                Utility.SetCanvasGroupEnabled(pauseButtonsCanvasGroup, true);
+                yield return null;
+            }
+
+            foreach (var player in playerCharacters)
+            {
                 if (player.IsDead())
                     continue;
 
@@ -113,7 +156,15 @@ public class GameController : MonoBehaviour
                 Utility.SetCanvasGroupEnabled(buttonsCanvasGroup, true);
                 waitingForInput = true;
                 while (waitingForInput)
+                {
+                    if (isPause)
+                    {
+                        waitingForInput = false;
+                        Utility.SetCanvasGroupEnabled(pauseButtonsCanvasGroup, true);
+                        yield return null;
+                    }
                     yield return null;
+                }
                 Utility.SetCanvasGroupEnabled(buttonsCanvasGroup, false);
 
                 currentTarget.targetIndicator.gameObject.SetActive(false);
@@ -121,10 +172,18 @@ public class GameController : MonoBehaviour
                 player.target = currentTarget.transform;
                 player.AttackEnemy();
                 while (!player.IsIdle())
+                {
+                    if (isPause)
+                    {
+                        player.SetState(Character.State.Idle);
+                        yield return null;
+                    }
                     yield return null;
+                }
             }
 
-            foreach (var enemy in enemyCharacters) {
+            foreach (var enemy in enemyCharacters)
+            {
                 if (enemy.IsDead())
                     continue;
 
@@ -135,7 +194,15 @@ public class GameController : MonoBehaviour
                 enemy.target = target.transform;
                 enemy.AttackEnemy();
                 while (!enemy.IsIdle())
+                {
+                    if (isPause)
+                    {
+                        enemy.SetState(Character.State.Idle);
+                        Utility.SetCanvasGroupEnabled(pauseButtonsCanvasGroup, true);
+                        yield return null;
+                    }
                     yield return null;
+                }
             }
         }
     }
