@@ -7,7 +7,10 @@ using UnityEngine.SceneManagement;
 public class GameController : MonoBehaviour
 {
     public CanvasGroup buttonsCanvasGroup;
-    public CanvasGroup pauseButtonsCanvasGroup;
+    public CanvasGroup pauseMenuCanvasGroup;
+    public CanvasGroup pauseButtonCanvasGroup;
+    public CanvasGroup playerWinCanvasGroup;
+    public CanvasGroup playerLoseCanvasGroup;
     public Button switchButton;
     [SerializeField] private Character[] playerCharacters = default;
     [SerializeField] private Character[] enemyCharacters = default;
@@ -19,6 +22,8 @@ public class GameController : MonoBehaviour
     void Start()
     {
         isPause = false;
+        Utility.SetCanvasGroupEnabled(playerWinCanvasGroup, false);
+        Utility.SetCanvasGroupEnabled(playerLoseCanvasGroup, false);
         switchButton.onClick.AddListener(NextTarget);
         StartCoroutine(GameLoop());
     }
@@ -31,17 +36,20 @@ public class GameController : MonoBehaviour
     public void PauseMenu()
     {
         isPause = true;
+        Utility.SetCanvasGroupEnabled(pauseButtonCanvasGroup, false);
     }
 
     public void ResumeGame()
     {
         isPause = false;
-        Utility.SetCanvasGroupEnabled(pauseButtonsCanvasGroup, false);
+        Utility.SetCanvasGroupEnabled(pauseMenuCanvasGroup, false);
+        Utility.SetCanvasGroupEnabled(pauseButtonCanvasGroup, true);
     }
 
     public void RestartLevel()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        Utility.SetCanvasGroupEnabled(pauseButtonCanvasGroup, true);
     }
 
     public void ExitToMainMenu()
@@ -104,11 +112,13 @@ public class GameController : MonoBehaviour
     void PlayerWon()
     {
         Debug.Log("Player won");
+        Utility.SetCanvasGroupEnabled(playerWinCanvasGroup, true);
     }
 
     void PlayerLost()
     {
         Debug.Log("Player lost");
+        Utility.SetCanvasGroupEnabled(playerLoseCanvasGroup, true);
     }
 
     bool CheckEndGame()
@@ -131,14 +141,14 @@ public class GameController : MonoBehaviour
     IEnumerator GameLoop()
     {
         Utility.SetCanvasGroupEnabled(buttonsCanvasGroup, false);
-        Utility.SetCanvasGroupEnabled(pauseButtonsCanvasGroup, false);
+        Utility.SetCanvasGroupEnabled(pauseMenuCanvasGroup, false);
 
         while (!CheckEndGame())
         {
             while (isPause)
             {
                 Utility.SetCanvasGroupEnabled(buttonsCanvasGroup, false);
-                Utility.SetCanvasGroupEnabled(pauseButtonsCanvasGroup, true);
+                Utility.SetCanvasGroupEnabled(pauseMenuCanvasGroup, true);
                 yield return null;
             }
 
@@ -160,7 +170,7 @@ public class GameController : MonoBehaviour
                     if (isPause)
                     {
                         waitingForInput = false;
-                        Utility.SetCanvasGroupEnabled(pauseButtonsCanvasGroup, true);
+                        Utility.SetCanvasGroupEnabled(pauseMenuCanvasGroup, true);
                         yield return null;
                     }
                     yield return null;
@@ -198,7 +208,7 @@ public class GameController : MonoBehaviour
                     if (isPause)
                     {
                         enemy.SetState(Character.State.Idle);
-                        Utility.SetCanvasGroupEnabled(pauseButtonsCanvasGroup, true);
+                        Utility.SetCanvasGroupEnabled(pauseMenuCanvasGroup, true);
                         yield return null;
                     }
                     yield return null;
