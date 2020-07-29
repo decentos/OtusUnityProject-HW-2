@@ -112,12 +112,14 @@ public class GameController : MonoBehaviour
     void PlayerWon()
     {
         Debug.Log("Player won");
+        Utility.SetCanvasGroupEnabled(buttonsCanvasGroup, false);
         Utility.SetCanvasGroupEnabled(playerWinCanvasGroup, true);
     }
 
     void PlayerLost()
     {
         Debug.Log("Player lost");
+        Utility.SetCanvasGroupEnabled(buttonsCanvasGroup, false);
         Utility.SetCanvasGroupEnabled(playerLoseCanvasGroup, true);
     }
 
@@ -145,13 +147,6 @@ public class GameController : MonoBehaviour
 
         while (!CheckEndGame())
         {
-            while (isPause)
-            {
-                Utility.SetCanvasGroupEnabled(buttonsCanvasGroup, false);
-                Utility.SetCanvasGroupEnabled(pauseMenuCanvasGroup, true);
-                yield return null;
-            }
-
             foreach (var player in playerCharacters)
             {
                 if (player.IsDead())
@@ -169,11 +164,17 @@ public class GameController : MonoBehaviour
                 {
                     if (isPause)
                     {
-                        waitingForInput = false;
+                        Time.timeScale = 0.0f;
+                        Utility.SetCanvasGroupEnabled(buttonsCanvasGroup, false);
                         Utility.SetCanvasGroupEnabled(pauseMenuCanvasGroup, true);
                         yield return null;
                     }
-                    yield return null;
+                    else
+                    {
+                        Time.timeScale = 1.0f;
+                        Utility.SetCanvasGroupEnabled(buttonsCanvasGroup, true);
+                        yield return null;
+                    }
                 }
                 Utility.SetCanvasGroupEnabled(buttonsCanvasGroup, false);
 
@@ -185,10 +186,17 @@ public class GameController : MonoBehaviour
                 {
                     if (isPause)
                     {
-                        player.SetState(Character.State.Idle);
+                        Time.timeScale = 0.0f;
+                        Utility.SetCanvasGroupEnabled(buttonsCanvasGroup, false);
+                        Utility.SetCanvasGroupEnabled(pauseMenuCanvasGroup, true);
                         yield return null;
                     }
-                    yield return null;
+                    else
+                    {
+                        Time.timeScale = 1.0f;
+                        Utility.SetCanvasGroupEnabled(buttonsCanvasGroup, true);
+                        yield return null;
+                    }
                 }
             }
 
@@ -205,13 +213,18 @@ public class GameController : MonoBehaviour
                 enemy.AttackEnemy();
                 while (!enemy.IsIdle())
                 {
+                    Utility.SetCanvasGroupEnabled(buttonsCanvasGroup, false);
                     if (isPause)
                     {
-                        enemy.SetState(Character.State.Idle);
+                        Time.timeScale = 0.0f;
                         Utility.SetCanvasGroupEnabled(pauseMenuCanvasGroup, true);
                         yield return null;
                     }
-                    yield return null;
+                    else
+                    {
+                        Time.timeScale = 1.0f;
+                        yield return null;
+                    }
                 }
             }
         }
