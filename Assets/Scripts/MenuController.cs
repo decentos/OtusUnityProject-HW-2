@@ -10,15 +10,18 @@ public class MenuController : MonoBehaviour
         None,
         Main,
         Settings,
+        SelectLevel,
     }
 
     public CanvasGroup mainScreen;
     public CanvasGroup settingsScreen;
+    public CanvasGroup selectLevelScreen;
 
     void SetCurrentScreen(Screen screen)
     {
         Utility.SetCanvasGroupEnabled(mainScreen, screen == Screen.Main);
         Utility.SetCanvasGroupEnabled(settingsScreen, screen == Screen.Settings);
+        Utility.SetCanvasGroupEnabled(selectLevelScreen, screen == Screen.SelectLevel);
     }
 
     void Awake()
@@ -28,8 +31,17 @@ public class MenuController : MonoBehaviour
 
     public void StartNewGame()
     {
-        SetCurrentScreen(Screen.None);
-        LoadingScreen.instance.LoadScene("SampleScene");
+        SetCurrentScreen(Screen.SelectLevel);
+    }
+
+    public void LoadLevel1()
+    {
+        LoadingScreen.instance.LoadScene("Level 1");
+    }
+
+        public void LoadLevel2()
+    {
+        LoadingScreen.instance.LoadScene("Level 2");
     }
 
     public void OpenSettings()

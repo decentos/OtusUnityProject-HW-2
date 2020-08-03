@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Health : MonoBehaviour
 {
-    [HideInInspector] public float current;
+    public float current;
 
     public void ApplyDamage(float damage)
     {
